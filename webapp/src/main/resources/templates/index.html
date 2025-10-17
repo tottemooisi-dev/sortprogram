@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ソートアルゴリズム可視化ツール</title>
+    <style>
+        /* =================================
+           1. General Body & Layout
+        ================================= */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* =================================
+           2. Header
+        ================================= */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-weight: 300;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        /* =================================
+           3. Form Controls
+        ================================= */
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        select,
+        input,
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;/* 薄い境界線 */
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #3498db;/* ボタンの色 */
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;/* ホバー時の色変化 */
+        }
+
+        #generate-random {
+            background-color: #2ecc71;/* ランダム生成ボタンの色 */
+        }
+
+        #generate-random:hover {
+            background-color: #27ae60;/* ホバー時の色変化 */
+        }
+
+        /* =================================
+           4. Visualization Area
+        ================================= */
+        #visualization-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 300px;
+            border: 1px solid #eee; /* 薄い境界線 */
+            background-color: #fafafa;  /* 背景色 */
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .bar {
+            width: 50px;
+            background-color: #e67e22; /* 通常の色 */
+            margin: 0 2px;
+            transition: height 0.3s, background-color 0.3s;
+            text-align: center;
+            color: white;
+            padding-top: 5px;
+            box-sizing: border-box;
+        }
+        .bar.active {
+            background-color: #FF0000; /* ハイライト時の色 (赤) */
+        }
+        .bar.eliminated {
+            background-color: #000000; /* 粛清された要素の色 (黒) */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ====== Header ====== -->
+    <header class="header">
+        <h1>ソートアルゴリズム可視化ツール</h1>
+    </header>
+
+    <!-- ====== Main Content ====== -->
+    <main class="main-container">
+        <!-- ▼▼▼ データ入力フォーム ▼▼▼ -->
+        <form th:action="@{/sort}" method="post" class="controls">
+            <div class="control-group">
+                <label for="sortType">ソートの種類</label>
+                <select id="sortType" name="sortType">
+                    <option value="bubble" th:selected="${selectedSortType == 'bubble'}">バブルソート</option>
+                    <option value="selection" th:selected="${selectedSortType == 'selection'}">選択ソート</option>
+                    <option value="insertion" th:selected="${selectedSortType == 'insertion'}">挿入ソート</option>
+                    <option value="merge" th:selected="${selectedSortType == 'merge'}">マージソート</option>
+                    <option value="quick" th:selected="${selectedSortType == 'quick'}">クイックソート</option>
+                    <option value="bogo" th:selected="${selectedSortType == 'bogo'}">ボゴソート（★）</option>
+                    <option value="stalin" th:selected="${selectedSortType == 'stalin'}">スターリンソート（★）</option>
+                    <option value="wave" th:selected="${selectedSortType == 'wave'}">ウェーブソート（★）</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="numbers">8桁の数字</label>
+                <input type="text" id="numbers" name="numbers"
+                    th:value="${currentNumbers != null ? currentNumbers : '87654321'}" pattern="[0-9]{8}" required>
+            </div>
+            <button type="button" id="generate-random">ランダム生成</button>
+            <button type="submit">ソート開始！</button>
+            <button type="button" id="stop-animation">停止</button>
+        </form>
+        <!-- ▲▲▲ データ入力フォーム ▲▲▲ -->
+
+        <!-- ▼▼▼ ソート過程の視覚化エリア ▼▼▼ -->
+        <div id="visualization-area">
+            <!-- JavaScriptによって動的に棒グラフが描画されるコンテナ -->
+        </div>
+        <!-- ▲▲▲ ソート過程の視覚化エリア ▲▲▲ -->
+
+        <!-- ▼▼▼ ソートアルゴリズムの説明エリア ▼▼▼ -->
+        <div id="sort-description" style="margin-top: 20px; padding: 15px; border: 1px solid #eee; border-radius: 5px; background-color: #fafafa;">
+            <!-- JavaScriptによって説明がここに挿入されます -->
+        </div>
+        <!-- ▲▲▲ ソートアルゴリズムの説明エリア ▲▲▲ -->
+    </main>
+
+    <!-- Thymeleafからデータを受け取り、アニメーションを制御するJavaScript -->
+    <script th:inline="javascript">
+        // Thymeleafからバックエンドで生成されたソート過程のデータを受け取る
+        const sortSteps = /*[[${sortSteps}]]*/ null;
+        const selectedSortType = /*[[${selectedSortType}]]*/ null;
+
+        const sortDescriptions = {
+            bubble: 'バブルソート　隣り合う要素を比較し、大小関係が逆であれば交換を繰り返すことでソートします。最も単純なアルゴリズムの一つです。',
+            selection: '選択ソート　未ソートの部分から最小値（または最大値）を見つけ、それをソート済みの部分の末尾に追加していく方法です。',
+            insertion: '挿入ソート　ソート済みの部分に、未ソートの部分から要素を一つずつ取り出して適切な位置に挿入していく方法です。',
+            merge: 'マージソート　データが単独になるまで２つずつ分割し、それぞれをソートしてから統合（マージ）することで、全体のソートを行うアルゴリズムです。',
+            quick: 'クイックソート　ある基準値（ピボット）を選び、それより小さい要素と大きい要素に分割し、再帰的にソートしていく方法です。',
+            bogo: 'ボゴソート　ひたすらランダムに並べ替え、それがソート済みになるまで繰り返す、天に身を任せるアルゴリズムです。',
+            stalin: 'スターリンソート　配列の先頭から順に見ていき、前の要素より後の要素が小さければ「粛清」していく方法です。',
+            wave: 'ウェーブ　これはソートではありません。隣り合う要素が「大、小、大、小...」という波のような順序になるように動かすアルゴリズムです。'
+        };
+
+        const visualizationArea = document.getElementById('visualization-area');
+        let animationFrame = 0;
+        let animationTimer = null; // アニメーションのタイマーIDを保持する変数
+
+        // 配列データを元に棒グラフを描画する関数
+        function drawBars(array, activeIndices = [], eliminatedIndices = []) {
+            visualizationArea.innerHTML = ''; // 一旦エリアを空にする
+            const maxVal = Math.max(...array);
+            for (let i = 0; i < array.length; i++) {
+                const val = array[i];
+                const bar = document.createElement('div'); // 棒グラフの要素を作成
+                bar.className = 'bar';
+                if (eliminatedIndices.includes(i)) {
+                    bar.classList.add('eliminated');
+                } else if (activeIndices.includes(i)) {
+                    bar.classList.add('active');
+                }
+                bar.style.height = (val / maxVal * 90) + '%';
+                bar.innerText = val;
+                visualizationArea.appendChild(bar); // 棒グラフを追加
+            }
+        }
+
+        // アニメーションを再生する関数
+        function animateSort() {
+            if (animationTimer) {
+                clearTimeout(animationTimer); // 既存のタイマーをクリア
+            }
+            if (animationFrame < sortSteps.length) {
+                const currentStep = sortSteps[animationFrame];
+                drawBars(currentStep.array, currentStep.activeIndices, currentStep.eliminatedIndices);
+                animationFrame++;// 次のフレームへ
+
+                // ソートの種類に応じてアニメーションの速度を調整
+                let delay = 600;    // デフォルト
+                if (selectedSortType === 'bogo') {
+                    delay = 50;     // ボゴソートはいつ完了するかわからないので速くする
+                } else if (selectedSortType === 'wave') {
+                    delay = 100;    // ウェーブソートちょうどよい速さに
+                }
+                animationTimer = setTimeout(animateSort, delay); // 次のフレームを設定
+            }
+        }
+
+        const generateRandomBtn = document.getElementById('generate-random'); // 「ランダム生成」ボタン
+        const numbersInput = document.getElementById('numbers'); // 数字入力フィールド
+        const stopBtn = document.getElementById('stop-animation'); // 「停止」ボタン
+        const sortTypeSelect = document.getElementById('sortType');
+        const descriptionArea = document.getElementById('sort-description');
+
+        // ソートの説明を更新する関数
+        function updateSortDescription() {
+            const selectedValue = sortTypeSelect.value;
+            descriptionArea.innerText = sortDescriptions[selectedValue] || '説明が見つかりません。';
+        }
+
+        // ページが読み込まれた時の処理
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSortDescription(); // 初期表示
+            if (sortSteps && sortSteps.length > 0) {
+                animateSort(); // ソート過程がある場合はアニメーションを開始
+            } else {
+                generateRandomBtn.click();  // ソート過程がない場合はランダム生成を実行
+            }
+        });
+
+        // ソートの種類が変更された時の処理
+        sortTypeSelect.addEventListener('change', updateSortDescription);
+
+        // 「停止」ボタンの処理
+        stopBtn.addEventListener('click', () => {
+            if (animationTimer) {
+                clearTimeout(animationTimer); // タイマーをクリアしてアニメーションを停止
+            }
+        });
+
+        // 「ランダム生成」ボタンの処理
+        generateRandomBtn.addEventListener('click', () => {
+            let randomStr = '';
+            const digits = [1, 2, 3, 4, 5, 6, 7, 8];
+            while (digits.length > 0) {
+                const randIndex = Math.floor(Math.random() * digits.length);// ランダムなインデックスを生成
+                randomStr += digits.splice(randIndex, 1)[0];// そのインデックスの数字を取り出して文字列に追加
+            }
+            numbersInput.value = randomStr;// 入力フィールドにセット
+            
+            drawBars(randomStr.split('').map(Number));// 文字列を数字の配列に変換して描画
+        });
+    </script>
+
+</body>
+
+</html>
