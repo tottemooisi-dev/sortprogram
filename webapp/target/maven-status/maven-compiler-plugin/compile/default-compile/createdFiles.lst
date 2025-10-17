@@ -1,0 +1,5 @@
+com\example\webapp\controller\SortController.class
+com\example\webapp\entity\SortResult.class
+com\example\webapp\repository\SortResultRepository.class
+com\example\webapp\WebappApplication.class
+com\example\webapp\controller\SortController$SortStep.class
