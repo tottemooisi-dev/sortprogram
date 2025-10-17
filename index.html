@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>ソートアルゴリズム可視化ツール (Static Ver.)</title>
+    <title>ソートアルゴリズム可視化ツール</title>
     <style>
         /* =================================
            1. General Body & Layout
@@ -64,12 +64,12 @@
         button {
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #ccc;/* 薄い境界線 */
             font-size: 1em;
         }
 
         button {
-            background-color: #3498db;
+            background-color: #3498db;/* ボタンの色 */
             color: white;
             border: none;
             cursor: pointer;
@@ -77,15 +77,15 @@
         }
 
         button:hover {
-            background-color: #2980b9;
+            background-color: #2980b9;/* ホバー時の色変化 */
         }
 
         #generate-random {
-            background-color: #2ecc71;
+            background-color: #2ecc71;/* ランダム生成ボタンの色 */
         }
 
         #generate-random:hover {
-            background-color: #27ae60;
+            background-color: #27ae60;/* ホバー時の色変化 */
         }
 
         /* =================================
@@ -96,8 +96,8 @@
             justify-content: center;
             align-items: flex-end;
             height: 300px;
-            border: 1px solid #eee;
-            background-color: #fafafa;
+            border: 1px solid #eee; /* 薄い境界線 */
+            background-color: #fafafa;  /* 背景色 */
             padding: 10px;
             border-radius: 5px;
         }
@@ -113,22 +113,25 @@
             box-sizing: border-box;
         }
         .bar.active {
-            background-color: #e74c3c; /* ハイライト時の色 (赤) */
+            background-color: #FF0000; /* ハイライト時の色 (赤) */
         }
         .bar.eliminated {
-            background-color: #7f8c8d; /* 粛清された要素の色 (灰色) */
+            background-color: #000000; /* 粛清された要素の色 (黒) */
         }
     </style>
 </head>
 
 <body>
 
+    <!-- ====== Header ====== -->
     <header class="header">
         <h1>ソートアルゴリズム可視化ツール</h1>
     </header>
 
+    <!-- ====== Main Content ====== -->
     <main class="main-container">
-        <form id="sort-form" class="controls">
+        <!-- ▼▼▼ データ入力フォーム ▼▼▼ -->
+        <div class="controls">
             <div class="control-group">
                 <label for="sortType">ソートの種類</label>
                 <select id="sortType" name="sortType">
@@ -137,9 +140,9 @@
                     <option value="insertion">挿入ソート</option>
                     <option value="merge">マージソート</option>
                     <option value="quick">クイックソート</option>
-                    <option value="bogo">ボゴソート</option>
-                    <option value="stalin">スターリンソート</option>
-                    <option value="wave">ウェーブ</option>
+                    <option value="bogo">ボゴソート（★）</option>
+                    <option value="stalin">スターリンソート（★）</option>
+                    <option value="wave">ウェーブソート（★）</option>
                 </select>
             </div>
             <div class="control-group">
@@ -147,33 +150,63 @@
                 <input type="text" id="numbers" name="numbers" value="87654321" pattern="[0-9]{8}" required>
             </div>
             <button type="button" id="generate-random">ランダム生成</button>
-            <button type="submit">ソート開始！</button>
+            <button type="button" id="start-sort">ソート開始！</button>
             <button type="button" id="stop-animation">停止</button>
-        </form>
+        </div>
+        <!-- ▲▲▲ データ入力フォーム ▲▲▲ -->
 
-        <div id="visualization-area"></div>
+        <!-- ▼▼▼ ソート過程の視覚化エリア ▼▼▼ -->
+        <div id="visualization-area">
+            <!-- JavaScriptによって動的に棒グラフが描画されるコンテナ -->
+        </div>
+        <!-- ▲▲▲ ソート過程の視覚化エリア ▲▲▲ -->
+
+        <!-- ▼▼▼ ソートアルゴリズムの説明エリア ▼▼▼ -->
+        <div id="sort-description" style="margin-top: 20px; padding: 15px; border: 1px solid #eee; border-radius: 5px; background-color: #fafafa;">
+            <!-- JavaScriptによって説明がここに挿入されます -->
+        </div>
+        <!-- ▲▲▲ ソートアルゴリズムの説明エリア ▲▲▲ -->
     </main>
 
     <script>
-        // DOM Elements
-        const form = document.getElementById('sort-form');
-        const sortTypeSelect = document.getElementById('sortType');
-        const numbersInput = document.getElementById('numbers');
-        const generateRandomBtn = document.getElementById('generate-random');
-        const stopBtn = document.getElementById('stop-animation');
-        const visualizationArea = document.getElementById('visualization-area');
+        // ソートアルゴリズムの説明
+        const sortDescriptions = {
+            bubble: 'バブルソート　隣り合う要素を比較し、大小関係が逆であれば交換を繰り返すことでソートします。最も単純なアルゴリズムの一つです。',
+            selection: '選択ソート　未ソートの部分から最小値（または最大値）を見つけ、それをソート済みの部分の末尾に追加していく方法です。',
+            insertion: '挿入ソート　ソート済みの部分に、未ソートの部分から要素を一つずつ取り出して適切な位置に挿入していく方法です。',
+            merge: 'マージソート　データが単独になるまで２つずつ分割し、それぞれをソートしてから統合（マージ）することで、全体のソートを行うアルゴリズムです。',
+            quick: 'クイックソート　ある基準値（ピボット）を選び、それより小さい要素と大きい要素に分割し、再帰的にソートしていく方法です。',
+            bogo: 'ボゴソート　ひたすらランダムに並べ替え、それがソート済みになるまで繰り返す、天に身を任せるアルゴリズムです。',
+            stalin: 'スターリンソート　配列の先頭から順に見ていき、前の要素より後の要素が小さければ「粛清」していく方法です。',
+            wave: 'ウェーブ　これはソートではありません。隣り合う要素が「大、小、大、小...」という波のような順序になるように動かすアルゴリズムです。'
+        };
 
-        // Animation state
-        let sortSteps = [];
+        // DOM要素の取得
+        const visualizationArea = document.getElementById('visualization-area');
+        const generateRandomBtn = document.getElementById('generate-random');
+        const numbersInput = document.getElementById('numbers');
+        const stopBtn = document.getElementById('stop-animation');
+        const startBtn = document.getElementById('start-sort');
+        const sortTypeSelect = document.getElementById('sortType');
+        const descriptionArea = document.getElementById('sort-description');
+
         let animationFrame = 0;
         let animationTimer = null;
+        let sortSteps = [];
 
-        // --- Core Drawing and Animation Logic ---
+        // ソート過程の1ステップを表現するクラス
+        class SortStep {
+            constructor(array, activeIndices = [], eliminatedIndices = []) {
+                this.array = [...array];
+                this.activeIndices = activeIndices;
+                this.eliminatedIndices = eliminatedIndices;
+            }
+        }
 
+        // 棒グラフを描画する関数
         function drawBars(array, activeIndices = [], eliminatedIndices = []) {
             visualizationArea.innerHTML = '';
-            if (!array || array.length === 0) return;
-            const maxVal = Math.max(...array);
+            const maxVal = Math.max(...array, 1); // 配列が空の場合のエラーを防ぐ
             for (let i = 0; i < array.length; i++) {
                 const val = array[i];
                 const bar = document.createElement('div');
@@ -189,42 +222,52 @@
             }
         }
 
+        // アニメーションを再生する関数
         function animateSort() {
             if (animationTimer) clearTimeout(animationTimer);
-            
             if (animationFrame < sortSteps.length) {
                 const currentStep = sortSteps[animationFrame];
                 drawBars(currentStep.array, currentStep.activeIndices, currentStep.eliminatedIndices);
                 animationFrame++;
-
                 let delay = 600;
                 const selectedSortType = sortTypeSelect.value;
-                if (selectedSortType === 'bogo') delay = 50;
-                else if (selectedSortType === 'wave') delay = 200;
-                
+                if (selectedSortType === 'bogo') {
+                    delay = 50;
+                } else if (selectedSortType === 'wave') {
+                    delay = 100;
+                } else if (selectedSortType === 'stalin') {
+                    delay = 300; // スターリンソートの速度を調整
+                }
                 animationTimer = setTimeout(animateSort, delay);
             }
         }
 
-        // --- Sorting Algorithms (Ported from Java) ---
-
-        function newStep(arr, active = [], eliminated = []) {
-            return {
-                array: [...arr],
-                activeIndices: Array.isArray(active) ? active : [active],
-                eliminatedIndices: eliminated
-            };
+        // ソートの説明を更新する関数
+        function updateSortDescription() {
+            descriptionArea.innerText = sortDescriptions[sortTypeSelect.value] || '説明が見つかりません。';
         }
 
+        // 数字の文字列を解析して整数配列に変換する関数
+        function parseNumbers(numbers) {
+            if (!numbers || numbers.trim() === '') return [];
+            return numbers.split('').map(Number).filter(n => !isNaN(n));
+        }
+
+        // ソートアルゴリズムのヘルパー関数
+        function newStep(arr, ...active) {
+            return new SortStep(arr, active);
+        }
+
+        // 各種ソートアルゴリズムの実装
         function bubbleSort(arr, steps) {
             steps.push(newStep(arr));
             let n = arr.length;
             for (let i = 0; i < n - 1; i++) {
                 for (let j = 0; j < n - i - 1; j++) {
-                    steps.push(newStep(arr, [j, j + 1]));
+                    steps.push(newStep(arr, j, j + 1));
                     if (arr[j] > arr[j + 1]) {
                         [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-                        steps.push(newStep(arr, [j, j + 1]));
+                        steps.push(newStep(arr, j, j + 1));
                     }
                 }
             }
@@ -237,13 +280,11 @@
             for (let i = 0; i < n - 1; i++) {
                 let minIndex = i;
                 for (let j = i + 1; j < n; j++) {
-                    steps.push(newStep(arr, [i, j, minIndex]));
-                    if (arr[j] < arr[minIndex]) {
-                        minIndex = j;
-                    }
+                    steps.push(newStep(arr, i, j, minIndex));
+                    if (arr[j] < arr[minIndex]) minIndex = j;
                 }
                 [arr[minIndex], arr[i]] = [arr[i], arr[minIndex]];
-                steps.push(newStep(arr, [i, minIndex]));
+                steps.push(newStep(arr, i, minIndex));
             }
             steps.push(newStep(arr));
         }
@@ -254,18 +295,18 @@
             for (let i = 1; i < n; i++) {
                 let key = arr[i];
                 let j = i - 1;
-                steps.push(newStep(arr, [i, j]));
+                steps.push(newStep(arr, i, j));
                 while (j >= 0 && arr[j] > key) {
                     arr[j + 1] = arr[j];
-                    steps.push(newStep(arr, [j, j + 1]));
+                    steps.push(newStep(arr, j, j + 1));
                     j--;
                 }
                 arr[j + 1] = key;
-                steps.push(newStep(arr, [j + 1]));
+                steps.push(newStep(arr, j + 1));
             }
             steps.push(newStep(arr));
         }
-        
+
         function mergeSort(arr, steps) {
             steps.push(newStep(arr));
             mergeSortHelper(arr, 0, arr.length - 1, steps);
@@ -274,7 +315,7 @@
 
         function mergeSortHelper(arr, left, right, steps) {
             if (left < right) {
-                const middle = Math.floor(left + (right - left) / 2);
+                let middle = Math.floor(left + (right - left) / 2);
                 mergeSortHelper(arr, left, middle, steps);
                 mergeSortHelper(arr, middle + 1, right, steps);
                 merge(arr, left, middle, right, steps);
@@ -282,11 +323,11 @@
         }
 
         function merge(arr, left, middle, right, steps) {
-            const leftArray = arr.slice(left, middle + 1);
-            const rightArray = arr.slice(middle + 1, right + 1);
+            let leftArray = arr.slice(left, middle + 1);
+            let rightArray = arr.slice(middle + 1, right + 1);
             let i = 0, j = 0, k = left;
             while (i < leftArray.length && j < rightArray.length) {
-                steps.push(newStep(arr, [left + i, middle + 1 + j]));
+                steps.push(newStep(arr, left + i, middle + 1 + j));
                 if (leftArray[i] <= rightArray[j]) {
                     arr[k++] = leftArray[i++];
                 } else {
@@ -294,8 +335,14 @@
                 }
                 steps.push(newStep(arr));
             }
-            while (i < leftArray.length) { arr[k++] = leftArray[i++]; steps.push(newStep(arr)); }
-            while (j < rightArray.length) { arr[k++] = rightArray[j++]; steps.push(newStep(arr)); }
+            while (i < leftArray.length) {
+                arr[k++] = leftArray[i++];
+                steps.push(newStep(arr));
+            }
+            while (j < rightArray.length) {
+                arr[k++] = rightArray[j++];
+                steps.push(newStep(arr));
+            }
         }
 
         function quickSort(arr, steps) {
@@ -316,15 +363,15 @@
             let pivot = arr[high];
             let i = low - 1;
             for (let j = low; j < high; j++) {
-                steps.push(newStep(arr, [j, high]));
+                steps.push(newStep(arr, j, high));
                 if (arr[j] < pivot) {
                     i++;
                     [arr[i], arr[j]] = [arr[j], arr[i]];
-                    steps.push(newStep(arr, [i, j]));
+                    steps.push(newStep(arr, i, j));
                 }
             }
             [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-            steps.push(newStep(arr, [i + 1, high]));
+            steps.push(newStep(arr, i + 1, high));
             return i + 1;
         }
 
@@ -346,79 +393,68 @@
             steps.push(newStep(arr));
             while (!isSorted(arr)) {
                 shuffle(arr);
-                const allIndices = Array.from(Array(arr.length).keys());
-                steps.push(newStep(arr, allIndices));
+                steps.push(newStep(arr, ...arr.map((_, i) => i)));
             }
             steps.push(newStep(arr));
         }
 
         function stalinSort(arr, steps) {
             if (arr.length === 0) {
-                steps.push(newStep(arr));
+                steps.push(new SortStep(arr));
                 return;
             }
-            steps.push(newStep(arr));
-            const eliminatedIndices = [];
-            let maxVal = arr[0];
-            let maxIdx = 0;
+            steps.push(new SortStep(arr));
+            let eliminated = [];
+            let max_val = arr[0];
+            let max_idx = 0;
+            let originalArr = [...arr];
 
-            for (let i = 1; i < arr.length; i++) {
-                steps.push({ array: [...arr], activeIndices: [i, maxIdx], eliminatedIndices: [...eliminatedIndices] });
-                if (arr[i] < maxVal) {
-                    eliminatedIndices.push(i);
+            for (let i = 1; i < originalArr.length; i++) {
+                steps.push(new SortStep(originalArr, [i, max_idx], [...eliminated])); // 配列のコピーを渡す
+                if (originalArr[i] < max_val) {
+                    eliminated.push(i);
                 } else {
-                    maxVal = arr[i];
-                    maxIdx = i;
+                    max_val = originalArr[i];
+                    max_idx = i;
                 }
             }
-            steps.push({ array: [...arr], activeIndices: [], eliminatedIndices: [...eliminatedIndices] });
+            steps.push(new SortStep(originalArr, [], eliminated));
+            
+            // 最終的なソート済み配列を生成
+            let sortedArr = [];
+            for(let i=0; i<originalArr.length; i++){
+                if(!eliminated.includes(i)){
+                    sortedArr.push(originalArr[i]);
+                }
+            }
+            // ここでは元の配列を変更せず、可視化のためにステップを記録するだけ
         }
 
         function waveAnimation(arr, steps) {
-            steps.push(newStep(arr));
-            const n = arr.length;
+            let n = arr.length;
             if (n === 0) return;
-            for (let i = 0; i < n * 2; i++) {
-                const first = arr.shift();
+            steps.push(newStep(arr));
+            for (let i = 0; i < n * 5; i++) {
+                let first = arr.shift();
                 arr.push(first);
-                steps.push(newStep(arr, [n - 1]));
+                steps.push(newStep(arr, n - 1));
             }
             steps.push(newStep(arr));
         }
 
-        // --- Event Listeners ---
+        // イベントリスナーの設定
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSortDescription();
+            generateRandomBtn.click();
+        });
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+        sortTypeSelect.addEventListener('change', updateSortDescription);
+
+        stopBtn.addEventListener('click', () => {
             if (animationTimer) clearTimeout(animationTimer);
-
-            const numbersStr = numbersInput.value;
-            const sortType = sortTypeSelect.value;
-            
-            const array = numbersStr.split('').map(Number);
-            
-            sortSteps = [];
-            animationFrame = 0;
-
-            const sortFunction = {
-                bubble: bubbleSort,
-                selection: selectionSort,
-                insertion: insertionSort,
-                merge: mergeSort,
-                quick: quickSort,
-                bogo: bogoSort,
-                stalin: stalinSort,
-                wave: waveAnimation
-            }[sortType];
-
-            if (sortFunction) {
-                sortFunction(array, sortSteps);
-                animateSort();
-            }
         });
 
         generateRandomBtn.addEventListener('click', () => {
-            if (animationTimer) clearTimeout(animationTimer);
             let randomStr = '';
             const digits = [1, 2, 3, 4, 5, 6, 7, 8];
             while (digits.length > 0) {
@@ -429,13 +465,34 @@
             drawBars(randomStr.split('').map(Number));
         });
 
-        stopBtn.addEventListener('click', () => {
-            if (animationTimer) clearTimeout(animationTimer);
+        startBtn.addEventListener('click', () => {
+            const numbers = numbersInput.value;
+            const array = parseNumbers(numbers);
+            if (array.length === 0) {
+                alert('有効な数字が入力されていません。');
+                return;
+            }
+
+            sortSteps = [];
+            animationFrame = 0;
+            const sortType = sortTypeSelect.value;
+
+            // ソートアルゴリズムのディスパッチ
+            const arrCopy = [...array];
+            switch (sortType) {
+                case 'bubble':    bubbleSort(arrCopy, sortSteps);    break;
+                case 'selection': selectionSort(arrCopy, sortSteps); break;
+                case 'insertion': insertionSort(arrCopy, sortSteps); break;
+                case 'merge':     mergeSort(arrCopy, sortSteps);     break;
+                case 'quick':     quickSort(arrCopy, sortSteps);     break;
+                case 'bogo':      bogoSort(arrCopy, sortSteps);      break;
+                case 'stalin':    stalinSort(array, sortSteps);      break; // 元の配列を渡す
+                case 'wave':      waveAnimation(arrCopy, sortSteps); break;
+            }
+            animateSort();
         });
-
-        // Initial draw
-        generateRandomBtn.click();
-
     </script>
+
 </body>
+
 </html>
