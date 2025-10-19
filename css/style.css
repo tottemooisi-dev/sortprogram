@@ -1,0 +1,248 @@
+/* Google FontsからPoppinsフォントをインポート */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* =================================
+   1. 全体的なスタイルとレイアウト
+================================= */
+body {
+    font-family: 'Poppins', sans-serif; /* フォントを指定 */
+    color: #333; /* 基本の文字色 */
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh; /* 画面の高さいっぱいに表示 */
+    display: flex;
+    justify-content: center; /* 水平中央揃え */
+    align-items: center;     /* 垂直中央揃え */
+    /* 背景に4色のグラデーションを設定 */
+    background: linear-gradient(135deg, #71b7e6, #9b59b6, #e67e22, #2ecc71);
+    background-size: 400% 400%; /* アニメーションのためにサイズを大きく設定 */
+    animation: gradientAnimation 15s ease infinite; /* 15秒で繰り返すアニメーションを適用 */
+}
+
+/* 背景グラデーションのアニメーション定義 */
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* タイトルの浮遊アニメーション定義 */
+@keyframes floatAnimation {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); } /* 上に10px移動 */
+    100% { transform: translateY(0); }
+}
+
+/* =================================
+   2. ヘッダー
+================================= */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* 文字に影を付ける */
+    animation: floatAnimation 4s ease-in-out infinite; /* 4秒で繰り返す浮遊アニメーションを適用 */
+}
+
+/* メインコンテンツのコンテナ */
+.main-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: rgba(255, 255, 255, 0.85); /* 半透明の白 */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* 影を付けて立体感を出す */
+    /* ガラスのような半透明効果（グラスモーフィズム） */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* =================================
+   3. フォームコントロール
+================================= */
+.controls {
+    display: flex;
+    flex-wrap: wrap; /* 画面幅に応じて折り返す */
+    gap: 20px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    color: #555;
+    font-weight: 600;
+}
+
+select,
+input,
+button {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease; /* すべてのプロパティに0.3秒のアニメーション効果 */
+}
+
+/* フォーカス時のスタイル */
+select:focus,
+input:focus {
+    outline: none;
+    border-color: #9b59b6;
+    box-shadow: 0 0 5px rgba(155, 89, 182, 0.5);
+}
+
+button {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* ボタンホバー時のアニメーション効果 */
+button:hover {
+    background-color: #8e44ad;
+    transform: translateY(-2px); /* 少し上に浮き上がる */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#generate-random {
+    background-color: #2ecc71; /* ランダム生成ボタンの色 */
+}
+
+#generate-random:hover {
+    background-color: #27ae60;
+}
+
+#stop-animation {
+    background-color: #e74c3c; /* 停止ボタンの色 */
+}
+
+#stop-animation:hover {
+    background-color: #c0392b;
+}
+
+/* =================================
+   4. 可視化エリア
+================================= */
+#visualization-area {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 300px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05); /* 内側に影を付ける */
+    transition: transform 0.3s ease; /* 揺れを止める際のアニメーション */
+}
+
+/* 左右に揺れるアニメーションの定義 */
+@keyframes waveMotionAnimation {
+    from {
+        transform: translateX(-15px);
+    }
+    to {
+        transform: translateX(15px);
+    }
+}
+
+#visualization-area.waving {
+    animation: waveMotionAnimation 2s ease-in-out infinite alternate;
+}
+
+/* 棒グラフの基本スタイル */
+.bar {
+    width: 50px;
+    background-image: linear-gradient(to top, #f39c12, #f1c40f);
+    background-color: #f39c12; /* グラデーション非対応ブラウザ用の色 */
+    margin: 0 2px;
+    transition: height 0.3s, transform 0.3s; /* 高さや変形にアニメーション効果 */
+    text-align: center;
+    color: white;
+    padding-top: 5px;
+    box-sizing: border-box;
+    border-radius: 5px 5px 0 0;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ソート中にアクティブな要素のスタイル */
+.bar.active {
+    background: #FF0000; /* すべての背景プロパティを上書きして赤色に */
+    transform: scale(1.05); /* 少し拡大して目立たせる */
+}
+
+/* スターリンソートで粛清された要素のスタイル */
+.bar.eliminated {
+    background: #34495e;
+}
+
+/* =================================
+   5. 説明エリア
+================================= */
+#sort-description {
+    margin-top: 20px;
+    padding: 20px;
+    border: none;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-size: 1.05em;
+    color: #444;
+}
+
+/* =================================
+   6. レスポンシブデザイン
+================================= */
+/* 画面幅768px以下のデバイスに適用されるスタイル */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .main-container {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 1.8em;
+    }
+
+    .controls {
+        flex-direction: column; /* 要素を縦に並べる */
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    select,
+    input,
+    button {
+        width: 100%; /* 幅を100%に */
+        box-sizing: border-box;
+    }
+
+    #visualization-area {
+        height: 250px;
+    }
+
+    .bar {
+        width: 30px; /* 棒グラフの幅を狭くする */
+        font-size: 0.8em;
+    }
+}
